@@ -23,7 +23,7 @@ def main():
     conn = connect()
     init_db(conn)
 
-    entries = ingest.fetch_feed_entries()
+    entries = ingest.discover_entries()
     touched: set[int] = set()
     processed = 0
 

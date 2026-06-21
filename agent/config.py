@@ -22,14 +22,11 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 
 # --- Source ---
-# StrictlyVC runs on beehiiv. beehiiv exposes a public RSS feed per publication.
-# CONFIRM this URL once: open the newsletter homepage, view source, and look for
-#   <link rel="alternate" type="application/rss+xml" href="...">
-# then set STRICTLYVC_FEED_URL to that value.
-STRICTLYVC_FEED_URL = os.getenv(
-    "STRICTLYVC_FEED_URL",
-    "https://rss.beehiiv.com/feeds/9OgS3Lw7Mu.xml",  # <-- placeholder, verify
-)
+# Source: point this at the newsletter HOMEPAGE or an RSS feed URL.
+# Given the homepage, the code auto-discovers the feed (and falls back to
+# scraping issue links off the page), so you don't need to hunt for a feed ID.
+STRICTLYVC_FEED_URL = os.getenv("STRICTLYVC_FEED_URL") or \
+    "https://newsletter.strictlyvc.com/"
 
 # --- Extraction model ---
 # Sonnet is a good default for messy prose; Haiku is cheaper if volume grows.

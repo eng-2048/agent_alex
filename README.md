@@ -52,10 +52,10 @@ git push -u origin main
 In your repo's **Settings → Secrets and variables → Actions**:
 
 - **Secrets:** `ANTHROPIC_API_KEY`, `SLACK_WEBHOOK_URL`
-- **Variables:** `STRICTLYVC_FEED_URL` — the beehiiv RSS feed URL. To find it,
-  open the newsletter homepage, view source, and copy the
-  `<link rel="alternate" type="application/rss+xml" href="...">` value.
-  (A placeholder default is set in `config.py`; replace it.)
+- **Variables (optional):** `STRICTLYVC_FEED_URL` — defaults to
+  `https://newsletter.strictlyvc.com/`. You can leave it unset. Point it at the
+  newsletter homepage OR an RSS feed URL; given the homepage, the code
+  auto-discovers the feed (and falls back to scraping issue links off the page).
 
 The schedule is in `.github/workflows/daily.yml` (weekdays, 18:00 UTC). Trigger a
 first run manually from the **Actions** tab → **agent-daily** → **Run workflow**.
