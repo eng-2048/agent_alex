@@ -1,0 +1,17 @@
+# Render blueprint for the Slack query service.
+# In Render: New + → Blueprint → connect this repo. It reads this file.
+# (The daily ingestion still runs on GitHub Actions — this is only the query API.)
+services:
+  - type: web
+    name: agent-slack-query
+    runtime: python
+    plan: starter            # always-on (~$7/mo). 'free' sleeps and Slack would time out.
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn agent.server:app --bind 0.0.0.0:$PORT --workers 2 --timeout 30
+    envVars:
+      - key: SLACK_SIGNING_SECRET   # from Slack app → Basic Information → Signing Secret
+        sync: false
+      - key: GITHUB_REPO            # e.g. eng-2048/agent_alex
+        value: eng-2048/agent_alex
+      - key: GITHUB_TOKEN           # only if your repo is PRIVATE; leave unset if public
+        sync: false

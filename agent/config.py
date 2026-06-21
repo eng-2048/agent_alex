@@ -37,6 +37,14 @@ THRESHOLD = int(os.getenv("AGENT_THRESHOLD", "5"))        # deals to be "prolifi
 ALERT_WINDOW_DAYS = int(os.getenv("AGENT_WINDOW_DAYS", "90"))  # rolling window
 USER_AGENT = os.getenv("AGENT_USER_AGENT", "Agent/0.1 (VC firm tracker)")
 
+# --- Slack query server (server.py) ---
+SLACK_SIGNING_SECRET = os.getenv("SLACK_SIGNING_SECRET")
+# Where the daily Action commits the database; the server reads it from here.
+GITHUB_REPO = os.getenv("GITHUB_REPO", "eng-2048/agent_alex")
+GITHUB_BRANCH = os.getenv("GITHUB_BRANCH", "main")
+GITHUB_DB_PATH = os.getenv("GITHUB_DB_PATH", "data/agent.db")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # only needed if the repo is private
+
 
 def require_secrets():
     missing = [k for k, v in {

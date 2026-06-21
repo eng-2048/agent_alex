@@ -85,3 +85,30 @@ python -m agent.query prolific --min 5 --window 180
   the `firm_aliases` table as the system runs. Fixing a mis-merge there reshapes
   counts without re-ingesting.
 - The alert window and any query window are independent.
+
+## Query from Slack (optional add-on)
+
+The daily job and CLI work without this. To query from inside Slack with a
+`/firms` command, run the small web service in `agent/server.py`. It reads the
+database your GitHub Action already commits — no second copy, no migration.
+
+It needs an always-on host (a slash command must answer within 3 seconds), so a
+free/sleeping tier won't work. Steps:
+
+1. **Deploy the service (Render).** New + → Blueprint → connect this repo; Render
+   reads `render.yaml` and creates an always-on web service (~$7/mo). Set env vars:
+   `SLACK_SIGNING_SECRET` (Slack app → Basic Information → Signing Secret),
+   `GITHUB_REPO` (e.g. `eng-2048/agent_alex`), and `GITHUB_TOKEN` only if your repo
+   is private. Note the service's public URL, e.g. `https://agent-slack-query.onrender.com`.
+2. **Add the slash command (Slack).** api.slack.com → your app → Slash Commands →
+   Create New Command. Command `/firms`, Request URL
+   `https://<your-render-url>/slack/firms`, then Save. Reinstall the app if prompted.
+3. **Use it:**
+   - `/firms` — all firms, all-time
+   - `/firms list 180` — last 180 days
+   - `/firms prolific` — at/above threshold in the last 180 days
+   - `/firms prolific 5 90` — ≥5 in the last 90 days
+
+Responses are visible only to whoever runs the command (ephemeral); change
+`response_type` to `in_channel` in `server.py` to post for the whole channel.
+
