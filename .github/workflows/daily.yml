@@ -1,0 +1,49 @@
+name: agent-daily
+
+on:
+  schedule:
+    # 18:00 UTC on weekdays (~10am PT / 1pm ET), after the issue is out.
+    # GitHub may delay scheduled runs under load; missed days are caught up
+    # on the next run as long as they're still in the feed.
+    - cron: "0 18 * * 1-5"
+  workflow_dispatch: {}   # allow manual runs from the Actions tab
+
+# Avoid two runs committing the DB at once.
+concurrency:
+  group: agent-daily
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # needed to commit the updated SQLite file back
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STRICTLYVC_FEED_URL: ${{ vars.STRICTLYVC_FEED_URL }}
+        run: python -m agent.run
+
+      - name: Commit updated database
+        run: |
+          git config user.name "agent-bot"
+          git config user.email "agent-bot@users.noreply.github.com"
+          git add data/agent.db
+          if git diff --staged --quiet; then
+            echo "No DB changes to commit."
+          else
+            git commit -m "chore: update appearances db [skip ci]"
+            git push
+          fi
