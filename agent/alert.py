@@ -1,8 +1,9 @@
-"""Alerting: fire a Slack message once when a firm crosses the threshold within
-the rolling window; re-arm if it later drops below.
+"""Alerting: fire a Slack message once when a firm crosses the threshold.
 
-"As soon as a firm shows up 5+ times" is a transition, not a daily status, so we
-alert on the upward crossing and then stay quiet until it falls back below.
+Counting respects config.ALERT_WINDOW_DAYS: 0 means all-time (every appearance
+ever seen), a positive value means a rolling window of that many days. We alert
+on the upward crossing and stay quiet afterward (re-arming only if the count
+later drops below the threshold, which can't happen under all-time counting).
 """
 import datetime as dt
 
@@ -13,6 +14,12 @@ from .db import now_iso
 
 
 def windowed_count(conn, firm_id: int, window_days: int) -> int:
+    # window_days <= 0 (or None) means all-time: count every appearance seen.
+    if not window_days or window_days <= 0:
+        return conn.execute(
+            "SELECT COUNT(*) AS n FROM appearances WHERE firm_id = ?",
+            (firm_id,),
+        ).fetchone()["n"]
     cutoff = (dt.date.today() - dt.timedelta(days=window_days)).isoformat()
     return conn.execute(
         "SELECT COUNT(*) AS n FROM appearances "
@@ -22,6 +29,13 @@ def windowed_count(conn, firm_id: int, window_days: int) -> int:
 
 
 def _latest_deal(conn, firm_id: int, window_days: int):
+    if not window_days or window_days <= 0:
+        return conn.execute(
+            "SELECT d.company, d.round_type, a.role, a.issue_date "
+            "FROM appearances a JOIN deals d ON a.deal_id = d.deal_id "
+            "WHERE a.firm_id = ? ORDER BY a.issue_date DESC LIMIT 1",
+            (firm_id,),
+        ).fetchone()
     cutoff = (dt.date.today() - dt.timedelta(days=window_days)).isoformat()
     return conn.execute(
         "SELECT d.company, d.round_type, a.role, a.issue_date "
@@ -70,7 +84,10 @@ def _post_slack(conn, name: str, firm_id: int, count: int) -> None:
         verb = "led" if latest["role"] == "lead" else "backed"
         rnd = f" {latest['round_type']}" if latest["round_type"] else ""
         ctx = f" Latest: {verb} {latest['company']}'s{rnd} round ({latest['issue_date']})."
+    span = (f"the last {config.ALERT_WINDOW_DAYS} days"
+            if config.ALERT_WINDOW_DAYS and config.ALERT_WINDOW_DAYS > 0
+            else "total")
     text = (f":rocket: *New prolific VC firm: {name}* — "
-            f"{count} deals in the last {config.ALERT_WINDOW_DAYS} days.{ctx}")
+            f"{count} deals {span}.{ctx}")
     resp = requests.post(config.SLACK_WEBHOOK_URL, json={"text": text}, timeout=30)
     resp.raise_for_status()
