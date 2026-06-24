@@ -46,9 +46,15 @@ def resolve_feed_url(source: str):
     return None
 
 
-def discover_entries() -> list[dict]:
-    """Normalized entries oldest-first: {id, link, published_date, _raw}."""
+def strictlyvc_entries(since: str | None = None, until: str | None = None) -> list[dict]:
+    """StrictlyVC entries (oldest-first), tagged with source and date-filtered.
+
+    Note: this uses the RSS feed / homepage, which only reach recent issues.
+    Deep backfill (e.g. to January) for StrictlyVC would need the beehiiv sitemap;
+    we add that once the test window confirms the rest works.
+    """
     feed_url = resolve_feed_url(config.STRICTLYVC_FEED_URL)
+    entries: list[dict] = []
     if feed_url:
         parsed = feedparser.parse(
             feed_url, request_headers={"User-Agent": config.USER_AGENT})
@@ -58,11 +64,25 @@ def discover_entries() -> list[dict]:
                 "link": e.get("link"),
                 "published_date": _date_from_struct(
                     e.get("published_parsed") or e.get("updated_parsed")),
+                "source": "strictlyvc",
                 "_raw": e,
             } for e in parsed.entries]
-            return list(reversed(entries))
-    # Fallback: scrape the homepage for issue links.
-    return _scrape_homepage_entries()
+    if not entries:
+        entries = _scrape_homepage_entries()
+    entries = [e for e in entries if _in_range(e.get("published_date"), since, until)]
+    entries.sort(key=lambda e: e.get("published_date") or "")
+    return entries
+
+
+def _in_range(date_str, since, until) -> bool:
+    # Unknown dates are kept (they get dated when the page is fetched).
+    if not date_str:
+        return True
+    if since and date_str < since:
+        return False
+    if until and date_str > until:
+        return False
+    return True
 
 
 def _scrape_homepage_entries() -> list[dict]:
@@ -80,7 +100,8 @@ def _scrape_homepage_entries() -> list[dict]:
         if url in seen:
             continue
         seen.add(url)
-        entries.append({"id": url, "link": url, "published_date": "", "_raw": None})
+        entries.append({"id": url, "link": url, "published_date": "",
+                        "source": "strictlyvc", "_raw": None})
     return list(reversed(entries))  # homepage is newest-first
 
 

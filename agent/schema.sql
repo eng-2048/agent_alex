@@ -3,15 +3,16 @@
 -- everything countable lives here as deterministic, auditable rows.
 
 CREATE TABLE IF NOT EXISTS issues (
-    issue_id        TEXT PRIMARY KEY,        -- RSS guid/id of the post
+    issue_id        TEXT PRIMARY KEY,        -- RSS guid/id or article URL
     url             TEXT,
     published_date  TEXT,                    -- YYYY-MM-DD
     fetched_at      TEXT,                    -- ISO timestamp
+    source          TEXT,                    -- 'strictlyvc' | 'prorata' | 'termsheet'
     status          TEXT DEFAULT 'parsed'
 );
 
 CREATE TABLE IF NOT EXISTS deals (
-    deal_id     TEXT PRIMARY KEY,            -- hash(company + round + issue_date)
+    deal_id     TEXT PRIMARY KEY,            -- hash(norm_company + norm_round): source/date-independent
     issue_id    TEXT REFERENCES issues(issue_id),
     company     TEXT,
     round_type  TEXT,
@@ -40,6 +41,7 @@ CREATE TABLE IF NOT EXISTS appearances (
     deal_id     TEXT REFERENCES deals(deal_id),
     role        TEXT,                         -- 'lead' | 'participation'
     issue_date  TEXT,                         -- YYYY-MM-DD
+    source      TEXT,                         -- which newsletter first recorded it
     UNIQUE(firm_id, deal_id)                  -- idempotency: re-runs can't double-count
 );
 

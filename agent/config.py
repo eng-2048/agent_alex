@@ -28,6 +28,18 @@ SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 STRICTLYVC_FEED_URL = os.getenv("STRICTLYVC_FEED_URL") or \
     "https://newsletter.strictlyvc.com/"
 
+# Which newsletters to ingest (comma-separated). Names match the source adapters.
+ENABLED_SOURCES = [s.strip() for s in
+                   os.getenv("AGENT_SOURCES", "strictlyvc,prorata,termsheet").split(",")
+                   if s.strip()]
+
+# Archive/listing pages the Pro Rata and Term Sheet adapters crawl for issue links.
+# These may need confirming on first run (especially Pro Rata's exact archive URL).
+PRORATA_ARCHIVE_URL = os.getenv(
+    "PRORATA_ARCHIVE_URL", "https://www.axios.com/newsletters/axios-pro-rata")
+TERMSHEET_ARCHIVE_URL = os.getenv(
+    "TERMSHEET_ARCHIVE_URL", "https://fortune.com/tag/term-sheet/")
+
 # --- Extraction model ---
 # Sonnet is a good default for messy prose; Haiku is cheaper if volume grows.
 EXTRACT_MODEL = os.getenv("AGENT_MODEL", "claude-sonnet-4-6")

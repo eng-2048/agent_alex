@@ -21,7 +21,17 @@ def connect() -> sqlite3.Connection:
 def init_db(conn: sqlite3.Connection) -> None:
     conn.executescript(config.SCHEMA_PATH.read_text())
     conn.commit()
+    _migrate(conn)
     _seed_aliases(conn)
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Bring older databases up to date (e.g. add the `source` column)."""
+    for table in ("appearances", "issues"):
+        cols = [r["name"] for r in conn.execute(f"PRAGMA table_info({table})")]
+        if "source" not in cols:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN source TEXT")
+    conn.commit()
 
 
 def _seed_aliases(conn: sqlite3.Connection) -> None:

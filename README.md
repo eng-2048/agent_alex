@@ -112,3 +112,38 @@ free/sleeping tier won't work. Steps:
 Responses are visible only to whoever runs the command (ephemeral); change
 `response_type` to `in_channel` in `server.py` to post for the whole channel.
 
+## Multiple newsletters + backfill
+
+The agent ingests several newsletters through pluggable **source adapters** in
+`agent/sources.py`: `strictlyvc`, `prorata` (Axios Pro Rata), and `termsheet`
+(Fortune Term Sheet). Set which run via `AGENT_SOURCES` (default: all three).
+
+**Cross-source dedup.** The same funding round is covered by all three
+newsletters on different days. A deal's identity is `hash(normalized_company +
+normalized_round)` — no date, no source — so the same round collapses to one
+deal and each firm is counted once for it, no matter how many newsletters
+reported it. Each appearance is tagged with the newsletter that first recorded
+it. (Heuristic: if two sources name a company differently, e.g. "Acme" vs
+"Acme AI", it won't merge — tune like firm aliases.)
+
+**Backfill a date range.** Populate history (and test collection) with:
+
+```bash
+# 1-month test window across all sources, starting clean:
+python -m agent.backfill --since 2026-05-22 --reset
+
+# specific range / specific sources:
+python -m agent.backfill --since 2026-01-01 --until 2026-06-22 --sources prorata,termsheet
+```
+
+Backfill crawls each source's archive (axios.com and fortune.com put the date in
+the URL, so dates are read from links; StrictlyVC uses its feed/homepage and
+reaches only recent weeks for now). It does **not** fire Slack alerts unless you
+pass `--alerts`. Because the deal identity changed, run the first backfill with
+`--reset` so counts rebuild cleanly.
+
+> The Pro Rata and Term Sheet adapters are best-effort and may need first-run
+> tuning (archive URL / which links to keep) — which is why we validate on a
+> short window before backfilling the year. Fortune's web paywall may also limit
+> what Term Sheet returns; we confirm on the first run.
+
