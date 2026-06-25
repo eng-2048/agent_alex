@@ -14,6 +14,8 @@ NOTE: the Pro Rata and Term Sheet adapters are best-effort and expected to need
 first-run tuning against the live HTML (archive URL + which links to keep) — which
 is exactly why we validate on a short window before backfilling the year.
 """
+from __future__ import annotations
+
 import re
 
 from bs4 import BeautifulSoup

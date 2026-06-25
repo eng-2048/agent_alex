@@ -5,6 +5,8 @@ ever seen), a positive value means a rolling window of that many days. We alert
 on the upward crossing and stay quiet afterward (re-arming only if the count
 later drops below the threshold, which can't happen under all-time counting).
 """
+from __future__ import annotations
+
 import datetime as dt
 
 import requests

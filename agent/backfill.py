@@ -12,6 +12,8 @@ channel); pass --alerts to run the alerter at the end.
 The same cross-source dedup applies, so overlapping coverage of the same round
 across newsletters collapses to a single appearance.
 """
+from __future__ import annotations
+
 import argparse
 import datetime as dt
 

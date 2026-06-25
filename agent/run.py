@@ -6,6 +6,8 @@ Pulls recent issues from every enabled source, ingests any not already stored,
 then runs alerts. Per-issue failures don't mark the issue as parsed, so they
 retry on the next run.
 """
+from __future__ import annotations
+
 from . import config, ingest, sources
 from .db import connect, init_db, now_iso
 from .extract import extract_deals

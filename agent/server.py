@@ -12,6 +12,8 @@ Slash command examples (configured in Slack as e.g. `/firms`):
     /firms prolific 5 90   -> firms with >= 5 in the last 90 days
     /firms help
 """
+from __future__ import annotations
+
 import hashlib
 import hmac
 import os

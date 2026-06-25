@@ -13,6 +13,8 @@ a firm is counted once for it. First source to record it wins (its date/source).
 Limitation: a heuristic — if two sources name a company differently
 ("Acme" vs "Acme AI"), it won't merge. Tunable like the firm aliases.
 """
+from __future__ import annotations
+
 import hashlib
 import re
 

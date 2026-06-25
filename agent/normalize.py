@@ -7,6 +7,8 @@ fast and human-curatable:
   2. match-key hit against existing canonical names (strip common suffixes)
   3. otherwise create a new firm and record the alias
 """
+from __future__ import annotations
+
 import re
 
 from .db import _get_or_create_firm, now_iso

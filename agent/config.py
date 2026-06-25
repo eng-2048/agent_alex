@@ -3,6 +3,8 @@
 Locally you can drop these into a .env file (see .env.example); in GitHub
 Actions they come from repo Secrets / Variables.
 """
+from __future__ import annotations
+
 import os
 from pathlib import Path
 

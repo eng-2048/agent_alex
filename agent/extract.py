@@ -5,6 +5,8 @@ the structure we want, which makes parsing deterministic. Scope is locked to
 equity funding rounds INTO operating companies — fund launches, M&A, debt, and
 firms merely quoted are excluded by the prompt.
 """
+from __future__ import annotations
+
 from anthropic import Anthropic
 
 from . import config

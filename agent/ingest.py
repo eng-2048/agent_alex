@@ -7,6 +7,8 @@ OR the newsletter's plain homepage. Given a homepage we:
 Either way the rest of the pipeline sees the same normalized entries, processed
 oldest-first so a missed day is caught up on the next run.
 """
+from __future__ import annotations
+
 import datetime as dt
 
 import feedparser

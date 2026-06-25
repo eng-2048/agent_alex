@@ -7,6 +7,8 @@
 The window is independent of the alert window — querying "last 6 months" does
 not change what the alerter watches.
 """
+from __future__ import annotations
+
 import argparse
 
 from .db import connect, init_db

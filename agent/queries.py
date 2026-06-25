@@ -1,6 +1,8 @@
 """Shared read queries, used by both the CLI (query.py) and the Slack
 server (server.py) so the counting logic lives in exactly one place.
 """
+from __future__ import annotations
+
 import datetime as dt
 
 
